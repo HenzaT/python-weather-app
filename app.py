@@ -1,11 +1,55 @@
-from flask import Flask
+from flask import Flask, request, jsonify
+from flask_caching import Cache
+from dotenv import load_dotenv
+import os, requests
 
+load_dotenv()
+
+config = {
+    "DEBUG": True,          # some Flask specific configs
+    "CACHE_TYPE": "SimpleCache",  # Flask-Caching related configs
+    "CACHE_DEFAULT_TIMEOUT": 300
+}
 app = Flask(__name__)
+app.config.from_mapping(config)
+cache = Cache(app)
 
-@app.route('/')
-def hello():
-    return 'Hello, Python!'
+@app.route('/weather', methods=['GET'])
+@cache.cached(timeout=50)
+def get_weather():
+    city = request.args.get('city')
+    if not city:
+        return 'Missing parameter'
 
-@app.route('/about')
-def about():
-    return 'This is the about page'
+    api_key = os.getenv("OPEN_WEATHER_KEY")
+    get_coordinates_url = f'http://api.openweathermap.org/geo/1.0/direct?q={city}&limit=5&appid={api_key}'
+    try:
+        response = requests.get(get_coordinates_url)
+        response.raise_for_status()
+        data = response.json()
+    except requests.exceptions.RequestException as e:
+        return jsonify({'error': str(e)}), 500
+
+    # remember, these are called dictionaries in python! (hash/object)
+    coordinates = {
+        'lat': data[0]['lat'],
+        'lon': data[0]['lon']
+    }
+
+    get_weather_url = f'https://api.openweathermap.org/data/2.5/weather?lat={coordinates.get('lat')}&lon={coordinates.get('lon')}&appid={api_key}'
+
+    try:
+        weather_response = requests.get(get_weather_url)
+        response.raise_for_status()
+        weather_data = weather_response.json()
+    except requests.exceptions.RequestException as e:
+        return jsonify({'error': str(e)}), 500
+
+    # convert kelvin to celcius
+    temp_in_kelvin = weather_data['main']['temp']
+    temp_in_celcius = round(temp_in_kelvin - 273.15, 2)
+
+    return jsonify({
+        'temperature': temp_in_celcius,
+        'description': weather_data['weather'][0]['description'],
+    })
