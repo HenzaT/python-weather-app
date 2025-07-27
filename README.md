@@ -22,6 +22,10 @@ Install Flask
 Create a new file in the project
 `touch app.py`\
 
+I ensured any API keys would be stored safely by creating a .env file and installing 
+`pip install python-dotenv`\
+
+This allowed me to safely fetch the API key from my .env file
 
 ## Reflections
 
