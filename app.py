@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from flask_caching import Cache
 from dotenv import load_dotenv
 import os, requests
@@ -11,6 +12,7 @@ config = {
     "CACHE_DEFAULT_TIMEOUT": 300
 }
 app = Flask(__name__)
+CORS(app)
 app.config.from_mapping(config)
 cache = Cache(app)
 
