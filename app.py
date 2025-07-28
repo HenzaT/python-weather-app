@@ -16,12 +16,17 @@ CORS(app)
 app.config.from_mapping(config)
 cache = Cache(app)
 
-@app.route('/weather', methods=['GET'])
+@app.route('/weather', methods=['GET','POST'])
 @cache.cached(timeout=50)
 def get_weather():
-    city = request.args.get('city')
+    if request.method == 'GET':
+        city = request.args.get('city')
+    elif request.method == 'POST':
+        data = request.get_json()
+        city = data.get('city') if data else None
+
     if not city:
-        return 'Missing parameter'
+        return jsonify({'error': 'Missing Parameter'}), 400
 
     api_key = os.getenv("OPEN_WEATHER_KEY")
     get_coordinates_url = f'http://api.openweathermap.org/geo/1.0/direct?q={city}&limit=5&appid={api_key}'
@@ -38,7 +43,7 @@ def get_weather():
         'lon': data[0]['lon']
     }
 
-    get_weather_url = f'https://api.openweathermap.org/data/2.5/weather?lat={coordinates.get('lat')}&lon={coordinates.get('lon')}&appid={api_key}'
+    get_weather_url = f"https://api.openweathermap.org/data/2.5/weather?lat={coordinates.get('lat')}&lon={coordinates.get('lon')}&appid={api_key}"
 
     try:
         weather_response = requests.get(get_weather_url)
