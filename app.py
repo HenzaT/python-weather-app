@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_caching import Cache
+from anthropic import Anthropic
 from dotenv import load_dotenv
 import os, requests
 
@@ -59,4 +60,30 @@ def get_weather():
     return jsonify({
         'temperature': temp_in_celcius,
         'description': weather_data['weather'][0]['description'],
+    })
+
+# I need the city, and weather description
+# Give these in the content for Claude
+
+@app.route('/suggestion', methods=['GET'])
+def claude_suggestion():
+    data = request.get_json()
+    user_message = data.get('userMessage') if data else None
+
+    client = Anthropic(
+        api_key = os.getenv("CLAUDE_API_KEY")
+    )
+    message = client.messages.create(
+    max_tokens=1024,
+    messages=[
+        {
+            "role": "user",
+            "content": f'what activities are there to do in this weather in this city? ',
+        }
+    ],
+    model="claude-3-5-haiku-latest",
+    )
+
+    return jsonify({
+        'suggestion': ''.join(block.text for block in message.content)
     })
