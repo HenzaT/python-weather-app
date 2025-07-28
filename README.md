@@ -14,19 +14,19 @@ I first set up my Flask project following the documentation:
 
 `mkdir python-weather-app`\
 `cd python-weather-app`\
-`python3 -m venv .venv`\
+`python3 -m venv .venv`
 
 Activate the virtual environment:
-`. .venv/bin/activate`\
+`. .venv/bin/activate`
 
 Install Flask
 `pip install Flask`
 
 Create a new file in the project
-`touch app.py`\
+`touch app.py`
 
 I ensured any API keys would be stored safely by creating a .env file and installing 
-`pip install python-dotenv`\
+`pip install python-dotenv`
 
 This allowed me to safely fetch the API key from my .env file. 
 
