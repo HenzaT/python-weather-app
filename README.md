@@ -17,15 +17,19 @@ I first set up my Flask project following the documentation:
 `python3 -m venv .venv`
 
 Activate the virtual environment:
+
 `. .venv/bin/activate`
 
 Install Flask
+
 `pip install Flask`
 
 Create a new file in the project
+
 `touch app.py`
 
 I ensured any API keys would be stored safely by creating a .env file and installing 
+
 `pip install python-dotenv`
 
 This allowed me to safely fetch the API key from my .env file. 
