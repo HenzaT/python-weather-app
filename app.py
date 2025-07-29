@@ -2,10 +2,16 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_caching import Cache
 from anthropic import Anthropic
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from dotenv import load_dotenv
-import os, requests
+import os, requests, re
 
 load_dotenv()
+
+if not os.getenv("OPEN_WEATHER_KEY") or not os.getenv("CLAUDE_API_KEY"):
+    raise RuntimeError("Missing critical API keys.")
+
 
 config = {
     "DEBUG": True,          # some Flask specific configs
@@ -26,8 +32,8 @@ def get_weather():
         data = request.get_json()
         city = data.get('city') if data else None
 
-    if not city:
-        return jsonify({'error': 'Missing Parameter'}), 400
+    if not city or len(city) > 100 or not re.match(r"^[a-zA-Z\s\-']+$", city):
+        return jsonify({'error': 'Invalid city name'}), 400
 
     api_key = os.getenv("OPEN_WEATHER_KEY")
     get_coordinates_url = f'http://api.openweathermap.org/geo/1.0/direct?q={city}&limit=5&appid={api_key}'
@@ -62,9 +68,9 @@ def get_weather():
         'description': weather_data['weather'][0]['description'],
     })
 
-# I need the city, and weather description
-# Give these in the content for Claude
+limiter = Limiter(get_remote_address, app=app)
 
+@limiter.limit("5 per minute")
 @app.route('/suggestion', methods=['POST'])
 @cache.cached(timeout=50)
 def claude_suggestion():
