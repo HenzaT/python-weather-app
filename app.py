@@ -65,10 +65,15 @@ def get_weather():
 # I need the city, and weather description
 # Give these in the content for Claude
 
-@app.route('/suggestion', methods=['GET'])
+@app.route('/suggestion', methods=['POST'])
+@cache.cached(timeout=50)
 def claude_suggestion():
     data = request.get_json()
-    user_message = data.get('userMessage') if data else None
+    city = data.get('city') if data else None
+    weather = data.get('weather') if data else None
+
+    if not city or not weather:
+        return jsonify({'error': 'Missing Parameter'}), 400
 
     client = Anthropic(
         api_key = os.getenv("CLAUDE_API_KEY")
@@ -78,7 +83,8 @@ def claude_suggestion():
     messages=[
         {
             "role": "user",
-            "content": f'what activities are there to do in this weather in this city? ',
+            "content":
+                f'Tell me 3 activities to do when the weather is {weather} in this {city}. Give 1 to 2 opening sentences before the activities.',
         }
     ],
     model="claude-3-5-haiku-latest",
