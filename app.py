@@ -23,7 +23,7 @@ CORS(app)
 app.config.from_mapping(config)
 cache = Cache(app)
 
-@app.route('/weather', methods=['GET','POST'])
+@app.route('/api/weather', methods=['GET','POST'])
 @cache.cached(timeout=50)
 def get_weather():
     if request.method == 'GET':
@@ -71,7 +71,7 @@ def get_weather():
 limiter = Limiter(get_remote_address, app=app)
 
 @limiter.limit("5 per minute")
-@app.route('/suggestion', methods=['POST'])
+@app.route('/api/suggestion', methods=['POST'])
 @cache.cached(timeout=50)
 def claude_suggestion():
     data = request.get_json()
@@ -90,7 +90,7 @@ def claude_suggestion():
         {
             "role": "user",
             "content":
-                f'Tell me 3 activities to do when the weather is {weather} in this {city}. Give 1 to 2 opening sentences before the activities.',
+                f'Tell me 3 activities to do when the weather is {weather} in this {city}. Give 1 to 2 opening sentences before the activities and return them as <ol> elements.',
         }
     ],
     model="claude-3-5-haiku-latest",
