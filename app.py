@@ -23,8 +23,12 @@ CORS(app)
 app.config.from_mapping(config)
 cache = Cache(app)
 
+def weather_cache_key():
+    data = request.get_json(silent=True) or {}
+    return f"weather:{data.get('city', '').strip().lower()}"
+
 @app.route('/api/weather', methods=['GET','POST'])
-@cache.cached(timeout=50)
+@cache.cached(timeout=50, key_prefix=weather_cache_key)
 def get_weather():
     if request.method == 'GET':
         city = request.args.get('city')
@@ -68,11 +72,20 @@ def get_weather():
         'description': weather_data['weather'][0]['description'],
     })
 
+# This limits the number for calls
 limiter = Limiter(get_remote_address, app=app)
-
 @limiter.limit("5 per minute")
+
+# This allows unique combinations of city and weather to get their own cache keys
+def suggestion_cache_key():
+    # silent=True allows for empty or missing JSON
+    data = request.get_json(silent=True) or {}
+    city = data.get('city', '').strip().lower()
+    weather = data.get('weather', '').strip().lower()
+    return f"suggestion:{city}:{weather}"
+
 @app.route('/api/suggestion', methods=['POST'])
-@cache.cached(timeout=50)
+@cache.cached(timeout=50, key_prefix=suggestion_cache_key)
 def claude_suggestion():
     data = request.get_json()
     city = data.get('city') if data else None
