@@ -23,6 +23,10 @@ CORS(app)
 app.config.from_mapping(config)
 cache = Cache(app)
 
+@app.route('/', methods=['GET'])
+def main():
+    return "Welcome to this Python Weather App. Search for weather by adding /api/weather?city=City. This backend project is intended to be used with a separate frontend app."
+
 def weather_cache_key():
     data = request.get_json(silent=True) or {}
     return f"weather:{data.get('city', '').strip().lower()}"
