@@ -86,7 +86,7 @@ def suggestion_cache_key():
     data = request.get_json(silent=True) or {}
     city = data.get('city', '').strip().lower()
     weather = data.get('weather', '').strip().lower()
-    temperature = data.get('temperature', '').strip().lower()
+    temperature = str(data.get('temperature', '')).strip().lower()
     return f"suggestion:{city}:{weather}:{temperature}"
 
 @app.route('/api/suggestion', methods=['POST'])
