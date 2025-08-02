@@ -86,7 +86,8 @@ def suggestion_cache_key():
     data = request.get_json(silent=True) or {}
     city = data.get('city', '').strip().lower()
     weather = data.get('weather', '').strip().lower()
-    return f"suggestion:{city}:{weather}"
+    temperature = data.get('temperature', '').strip().lower()
+    return f"suggestion:{city}:{weather}:{temperature}"
 
 @app.route('/api/suggestion', methods=['POST'])
 @cache.cached(timeout=50, key_prefix=suggestion_cache_key)
@@ -94,8 +95,9 @@ def claude_suggestion():
     data = request.get_json()
     city = data.get('city') if data else None
     weather = data.get('weather') if data else None
+    temperature = data.get('temperature') if data else None
 
-    if not city or not weather:
+    if not city or not weather or not temperature:
         return jsonify({'error': 'Missing Parameter'}), 400
 
     client = Anthropic(
@@ -107,7 +109,7 @@ def claude_suggestion():
         {
             "role": "user",
             "content":
-                f'Tell me 3 activities to do when the weather is {weather} in this {city}. Give 1 to 2 opening sentences before the activities and return them as <ol> elements.',
+                f'Tell me 3 activities to do when the weather is {weather} and temperature is {temperature} in this {city}. Give 1 to 2 opening sentences before the activities and return them as <ol> elements.',
         }
     ],
     model="claude-3-5-haiku-latest",
