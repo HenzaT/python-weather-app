@@ -1,4 +1,4 @@
-## (In Progress) Python Weather App
+## Python Weather App
 This is a self-directed project. 
 
 ## Goals
