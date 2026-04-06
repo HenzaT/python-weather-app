@@ -19,7 +19,11 @@ config = {
     "CACHE_DEFAULT_TIMEOUT": 300
 }
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={
+    r"/api/*": {
+        "origins": "https://react-weather-claude-app-af1fc23c96a1.herokuapp.com"
+    }
+})
 app.config.from_mapping(config)
 cache = Cache(app)
 
@@ -62,7 +66,7 @@ def get_weather():
 
     try:
         weather_response = requests.get(get_weather_url)
-        response.raise_for_status()
+        weather_response.raise_for_status()
         weather_data = weather_response.json()
     except requests.exceptions.RequestException as e:
         return jsonify({'error': str(e)}), 500
@@ -115,6 +119,9 @@ def claude_suggestion():
     model="claude-3-5-haiku-latest",
     )
 
-    return jsonify({
-        'suggestion': ''.join(block.text for block in message.content)
-    })
+    suggestion_text = ""
+    for block in message.content:
+        if hasattr(block, "text"):
+            suggestion_text += block.text
+
+    return jsonify({'suggestion': suggestion_text})
