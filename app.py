@@ -80,10 +80,6 @@ def get_weather():
         'description': weather_data['weather'][0]['description'],
     })
 
-# This limits the number for calls
-limiter = Limiter(get_remote_address, app=app)
-@limiter.limit("5 per minute")
-
 # This allows unique combinations of city and weather to get their own cache keys
 def suggestion_cache_key():
     # silent=True allows for empty or missing JSON
@@ -92,6 +88,12 @@ def suggestion_cache_key():
     weather = data.get('weather', '').strip().lower()
     temperature = str(data.get('temperature', '')).strip().lower()
     return f"suggestion:{city}:{weather}:{temperature}"
+
+# This limits the number for calls
+limiter = Limiter(get_remote_address, app=app)
+@app.route('/api/suggestion', methods=['POST'])
+@cache.cached(timeout=50, key_prefix=suggestion_cache_key)
+@limiter.limit("10 per hour")
 
 @app.route('/api/suggestion', methods=['POST'])
 @cache.cached(timeout=50, key_prefix=suggestion_cache_key)
