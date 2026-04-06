@@ -116,7 +116,7 @@ def claude_suggestion():
                 f'Tell me 3 activities to do when the weather is {weather} and temperature is {temperature} in this {city}. Give 1 to 2 opening sentences before the activities and return them as <ol> elements.',
         }
     ],
-    model="claude-3-5-haiku-latest",
+    model="claude-3-haiku-20240307",
     )
 
     suggestion_text = ""
