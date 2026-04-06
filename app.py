@@ -95,8 +95,6 @@ limiter = Limiter(get_remote_address, app=app)
 @cache.cached(timeout=50, key_prefix=suggestion_cache_key)
 @limiter.limit("10 per hour")
 
-@app.route('/api/suggestion', methods=['POST'])
-@cache.cached(timeout=50, key_prefix=suggestion_cache_key)
 def claude_suggestion():
     data = request.get_json()
     city = data.get('city') if data else None
